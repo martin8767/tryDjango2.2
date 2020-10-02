@@ -1,8 +1,11 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 from .models import BlogPost
+from .forms import BlogPostModelForm
 
 # CRUD
 # 
@@ -21,11 +24,23 @@ def blog_post_list_view(request):
     context = {'object_list': qs}
     return render(request, template_name, context)
 
+# @login_required
+@staff_member_required
 def blog_post_create_view(request):
     # create objects
     # ? use a form
-    template_name = 'blog/create.html'
-    context = {'form': None}
+    form = BlogPostModelForm(request.POST or None)
+    if form.is_valid():
+        # print(form.cleaned_data)
+        # title = form.cleaned_data['title']
+        # obj = BlogPost.objects.create(**form.cleaned_data)
+        obj = form.save(commit=False)
+        # obj.title = form.cleaned_data.get("title") + "0"
+        obj.save()
+        
+        form = BlogPostModelForm()
+    template_name = 'form.html'
+    context = {'form': form}
     return render(request, template_name, context)
 
 def blog_post_detail_view(request, slug):
